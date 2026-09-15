@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+
+<a class="skip-link" href="#main">Skip to incident workspace</a>
+<header class="app-header">
+    <div class="container-fluid workspace-width d-flex align-items-center justify-content-between gap-3">
+        <a href="/" class="brand" aria-label="OpsPilot home">
+            <span class="brand-mark" aria-hidden="true">op<span>·</span></span>
+            <span>OpsPilot <span class="brand-divider">/</span> <span class="brand-description">Incident workspace</span></span>
+        </a>
+        <span class="sandbox-label"><span aria-hidden="true">◈</span> Fictional sandbox</span>
+    </div>
+</header>
+<main id="main" class="container-fluid workspace-width">
+    <OpsPilot.Web.Components.Shared.SafeErrorBoundary>
+        <ChildContent>@Body</ChildContent>
+        <ErrorContent>
+            <div class="alert alert-danger my-5" role="alert">
+                The workspace could not complete this request. <a href="/">Reload OpsPilot</a> to try again.
+            </div>
+        </ErrorContent>
+    </OpsPilot.Web.Components.Shared.SafeErrorBoundary>
+</main>
+<footer class="container-fluid workspace-width app-footer">
+    <span>OpsPilot workshop</span><span>Fictional logs. Human decisions. Simulated actions.</span>
+</footer>
+<div id="blazor-error-ui" role="alert">
+    The connection was interrupted. <a href="/" class="reload">Reload the workspace</a> to reconnect.
+</div>

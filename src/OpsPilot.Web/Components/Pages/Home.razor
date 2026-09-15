@@ -1,0 +1,105 @@
+@page "/"
+@implements IDisposable
+
+<PageTitle>OpsPilot | AI Incident Copilot</PageTitle>
+<section class="intro d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div><h1>OpsPilot</h1><p class="subtitle">AI Incident Copilot</p></div>
+    <p class="intro-note">From noisy logs to an informed response.<br />You review every next step.</p>
+</section>
+
+<section aria-labelledby="samples-heading" class="mb-4">
+    <div class="section-heading"><h2 id="samples-heading">Start with an incident</h2><span>Three fictional scenarios, ready to explore</span></div>
+    <div class="row g-3">
+        @foreach (var scenario in scenarios)
+        {
+            <div class="col-lg-4">
+                <button type="button" class="scenario-card @(selectedId == scenario.Id ? "selected" : "")"
+                        disabled="@(!isInteractive || isLoading)" aria-pressed="@(selectedId == scenario.Id)" @onclick="() => LoadScenario(scenario)">
+                    <span class="scenario-top"><span class="service-chip">@scenario.ServiceName</span><span class="selection-dot" aria-hidden="true"></span></span>
+                    <strong>@scenario.Title</strong>
+                    <span class="scenario-description">@scenario.Description</span>
+                </button>
+            </div>
+        }
+    </div>
+</section>
+
+<div class="row g-4 align-items-start">
+    <section class="col-xl-5" aria-labelledby="input-heading">
+        <div class="work-panel">
+            <div class="panel-heading"><h2 id="input-heading">Incident input</h2><span class="step-label">1 / Investigate</span></div>
+            <div class="panel-body">
+                <form @onsubmit="AnalyzeAsync" @onsubmit:preventDefault>
+                    <fieldset disabled="@(!isInteractive || isLoading)">
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6"><label class="form-label" for="service">Service name</label>
+                                <input id="service" class="form-control" maxlength="80" @bind="serviceName" @bind:event="oninput" @bind:after="InputChanged" placeholder="e.g. checkout-api" /></div>
+                            <div class="col-sm-6"><label class="form-label" for="environment">Environment</label>
+                                <input id="environment" class="form-control" maxlength="40" @bind="environmentName" @bind:event="oninput" @bind:after="InputChanged" placeholder="e.g. fictional-prod" /></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0" for="logs">Application logs</label>
+                            <button type="button" class="btn btn-link btn-sm p-0" @onclick="ClearInput">Clear</button>
+                        </div>
+                        <textarea id="logs" class="form-control log-editor" rows="15" maxlength="16000" spellcheck="false"
+                                  @bind="logs" @bind:event="oninput" @bind:after="InputChanged"
+                                  aria-describedby="logs-help" placeholder="Select a sample above, or paste your own fictional application logs here."></textarea>
+                        <div id="logs-help" class="input-help"><span>Fictional data only. No secrets or personal data.</span><span>@logs.Length.ToString("N0") / 16,000</span></div>
+                    </fieldset>
+                    @if (validationErrors.Count > 0)
+                    {
+                        <div class="alert alert-danger mt-3 mb-0" role="alert"><ul class="mb-0 ps-3">@foreach (var error in validationErrors) { <li>@error</li> }</ul></div>
+                    }
+                    <div class="analysis-controls">
+                        <button class="btn btn-primary analyze-button" type="submit" disabled="@(!isInteractive || isLoading)">
+                            @if (isLoading) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span><span>Analyzing logs…</span> }
+                            else { <span>Analyze incident</span><span aria-hidden="true">↗</span> }
+                        </button>
+                        @if (isLoading) { <button class="btn btn-outline-secondary" type="button" @onclick="Cancel">Cancel</button> }
+                    </div>
+                </form>
+                <p class="privacy-note">Analysis uses the provided logs, a sample runbook and fictional deployment history.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="col-xl-7" aria-labelledby="assessment-heading" aria-busy="@isLoading">
+        <div class="work-panel assessment-panel">
+            <div class="panel-heading"><h2 id="assessment-heading">Incident assessment</h2><span class="step-label">2 / Review</span></div>
+            <div aria-live="polite" aria-atomic="false">
+                @if (!string.IsNullOrEmpty(notice)) { <div class="alert alert-info m-4" role="status">@notice</div> }
+                @if (isLoading)
+                {
+                    <div class="empty-state" role="status">
+                        <span class="spinner-border text-primary mb-4" aria-hidden="true"></span>
+                        <h3>Making sense of the logs</h3>
+                        <p>Checking symptoms against runbook and deployment context. This can take up to a minute.</p>
+                    </div>
+                }
+                else if (assessment is not null && assessedRequest is not null)
+                {
+                    <AssessmentPanel Assessment="assessment" Request="assessedRequest" Approved="approved" OnApprove="Approve" />
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="diagnostic-symbol" aria-hidden="true"><span>⌁</span></div>
+                        <h3>A clear picture starts here</h3>
+                        <p>Select a sample or add fictional logs, then analyze the incident to see evidence, likely causes and recommended next steps.</p>
+                        <div class="empty-steps"><span>Read the evidence</span><span>Review the causes</span><span>Decide what’s next</span></div>
+                    </div>
+                }
+            </div>
+        </div>
+        @if (activity.Count > 0)
+        {
+            <section class="activity-panel mt-4" aria-labelledby="activity-heading" aria-live="polite">
+                <div class="section-heading"><h2 id="activity-heading">Simulation activity</h2><span>This session only</span></div>
+                @foreach (var entry in activity)
+                {
+                    <div class="activity-row"><span class="activity-check" aria-hidden="true">✓</span><div><strong>@entry.Message</strong><small>@entry.CreatedAt.ToLocalTime().ToString("HH:mm:ss") · Simulated, no infrastructure changed</small></div></div>
+                }
+            </section>
+        }
+    </section>
+</div>

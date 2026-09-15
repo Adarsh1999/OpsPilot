@@ -1,0 +1,26 @@
+[
+  {
+    "Id": "postgres-pool",
+    "Title": "Database connections exhausted",
+    "Description": "Orders stall as every database connection stays busy.",
+    "ServiceName": "orders-api",
+    "Environment": "fictional-prod",
+    "Logs": "2026-06-12T09:40:01Z WARN orders-api pool active=100 idle=0 max=100 waiting=38\n2026-06-12T09:40:03Z ERROR orders-api Npgsql connection acquisition timed out after 30s\n2026-06-12T09:40:04Z WARN orders-api transaction duration_ms=92000 operation=reserve-stock\n2026-06-12T09:40:06Z ERROR orders-api GET /orders HTTP 503 duration_ms=30012\n2026-06-12T09:40:10Z INFO orders-api database reachable=true query_ping_ms=12"
+  },
+  {
+    "Id": "checkout-deployment",
+    "Title": "Checkout fails after release",
+    "Description": "A fresh deployment is followed by a wave of HTTP 500s.",
+    "ServiceName": "checkout-api",
+    "Environment": "fictional-prod",
+    "Logs": "2026-06-12T10:00:00Z INFO checkout-api deployment version=v2.4 previous=v2.3 completed\n2026-06-12T10:01:03Z ERROR checkout-api version=v2.4 POST /checkout HTTP 500\n2026-06-12T10:01:03Z ERROR checkout-api NullReferenceException at TaxMapper.Map(cart.taxProfile)\n2026-06-12T10:02:00Z WARN checkout-api version=v2.4 checkout_requests=100 http_500=82 window=60s\n2026-06-12T10:02:05Z INFO checkout-api payment-provider health=healthy latency_ms=85"
+  },
+  {
+    "Id": "auth-issuer",
+    "Title": "Valid sign-ins are rejected",
+    "Description": "Token validation reports an issuer mismatch and HTTP 401s.",
+    "ServiceName": "auth-api",
+    "Environment": "fictional-staging",
+    "Logs": "2026-06-12T11:20:00Z INFO auth-api version=v1.9 configuration reload completed\n2026-06-12T11:20:02Z ERROR auth-api IDX10205 issuer validation failed expected=https://login.fictional.example/tenant-a actual=https://login.fictional.example/tenant-b\n2026-06-12T11:20:02Z WARN auth-api GET /profile HTTP 401 reason=invalid_issuer\n2026-06-12T11:21:00Z WARN auth-api authentication_attempts=60 invalid_issuer=57 window=60s\n2026-06-12T11:21:03Z INFO auth-api token_signature_valid=true token_expired=false"
+  }
+]

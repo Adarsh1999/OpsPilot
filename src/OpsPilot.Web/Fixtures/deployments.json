@@ -1,0 +1,30 @@
+[
+  {
+    "ServiceName": "orders-api",
+    "Version": "v3.8",
+    "DeployedAt": "2026-06-11T15:00:00Z",
+    "Change": "Stock reservation transaction refactor",
+    "Status": "deployed"
+  },
+  {
+    "ServiceName": "checkout-api",
+    "Version": "v2.4",
+    "DeployedAt": "2026-06-12T10:00:00Z",
+    "Change": "New tax profile mapping",
+    "Status": "deployed"
+  },
+  {
+    "ServiceName": "checkout-api",
+    "Version": "v2.3",
+    "DeployedAt": "2026-06-10T14:00:00Z",
+    "Change": "Previous checkout release",
+    "Status": "previous"
+  },
+  {
+    "ServiceName": "auth-api",
+    "Version": "v1.9",
+    "DeployedAt": "2026-06-12T11:15:00Z",
+    "Change": "Environment issuer configuration update",
+    "Status": "deployed"
+  }
+]

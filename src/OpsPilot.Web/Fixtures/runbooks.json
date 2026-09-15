@@ -1,0 +1,29 @@
+[
+  {
+    "ServiceName": "orders-api",
+    "Title": "PostgreSQL connection pool saturation",
+    "Steps": [
+      "Inspect active transactions and connection wait time in the fictional logs.",
+      "Check connection disposal and transaction duration before changing pool limits.",
+      "Ask an operator to review long-running transactions; never terminate sessions automatically."
+    ]
+  },
+  {
+    "ServiceName": "checkout-api",
+    "Title": "Checkout release regression",
+    "Steps": [
+      "Compare HTTP 500 onset with the deployment timestamp.",
+      "Check the TaxMapper exception and reproduce with a fictional cart.",
+      "Request human review of a rollback to the previous known release."
+    ]
+  },
+  {
+    "ServiceName": "auth-api",
+    "Title": "Authentication issuer mismatch",
+    "Steps": [
+      "Compare the expected and actual fictional token issuer.",
+      "Check the intended environment and issuer configuration with an operator.",
+      "Keep issuer and signature validation enabled; request approval for a configuration correction."
+    ]
+  }
+]

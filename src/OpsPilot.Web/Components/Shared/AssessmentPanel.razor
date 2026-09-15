@@ -1,0 +1,70 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="panel-body">
+    <div class="result-topline"><span class="severity-badge severity-@Assessment.Severity.ToString().ToLowerInvariant()">@Assessment.Severity severity</span><span class="result-service">@Request.ServiceName</span></div>
+    <h3 class="result-summary">@Assessment.Summary</h3>
+    @if (Assessment.Evidence.Length == 0)
+    {
+        <div class="alert alert-warning">There is no verified log evidence in this assessment. Review the logs and model setup before retrying. Approval is disabled.</div>
+    }
+    <div class="assessment-section"><h4>Evidence from the logs</h4>
+        @if (Assessment.Evidence.Length == 0) { <p class="text-secondary">No evidence established.</p> }
+        else { <ul class="evidence-list">@foreach (var item in Assessment.Evidence) { <li><code>@item</code></li> }</ul> }
+    </div>
+    <div class="assessment-section"><h4>Likely causes</h4>
+        @if (Assessment.LikelyCauses.Length == 0) { <p class="text-secondary">No supported cause identified.</p> }
+        else { <ul class="result-list">@foreach (var item in Assessment.LikelyCauses) { <li>@item</li> }</ul> }
+    </div>
+    <div class="assessment-section"><h4>Recommended actions</h4><ol class="result-list">@foreach (var item in Assessment.RecommendedActions) { <li>@item</li> }</ol></div>
+    <div class="stakeholder-box">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2"><h4 class="mb-0">Stakeholder update</h4>
+            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="CopyAsync">Copy stakeholder update</button></div>
+        <p>@Assessment.StakeholderUpdate</p>
+        @if (copyNotice is not null) { <small role="status">@copyNotice</small> }
+    </div>
+    <div class="approval-box">
+        <div><h4>Human approval required</h4><p>Review the assessment before creating a simulated request. Nothing will run against real infrastructure.</p></div>
+        <p class="simulation-preview"><strong>Demo record:</strong> @RemediationSimulation.Describe(Request)</p>
+        <button type="button" class="btn btn-dark" disabled="@(Approved || !RemediationSimulation.CanApprove(Assessment, Request))" @onclick="OnApprove">
+            @(Approved ? "Remediation approved (simulated)" : "Approve remediation")
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IncidentAssessment Assessment { get; set; } = default!;
+    [Parameter, EditorRequired] public IncidentRequest Request { get; set; } = default!;
+    [Parameter] public bool Approved { get; set; }
+    [Parameter] public EventCallback OnApprove { get; set; }
+    private IJSObjectReference? module;
+    private string? copyNotice;
+    private IncidentAssessment? previousAssessment;
+
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(previousAssessment, Assessment)) copyNotice = null;
+        previousAssessment = Assessment;
+    }
+
+    private async Task CopyAsync()
+    {
+        try
+        {
+            module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/clipboard.js");
+            await module.InvokeVoidAsync("copyText", Assessment.StakeholderUpdate);
+            copyNotice = "Stakeholder update copied.";
+        }
+        catch (JSException) { copyNotice = "Clipboard is unavailable. Select the update text and copy it manually."; }
+        catch (JSDisconnectedException) { copyNotice = "Reconnect to copy, or select the update text manually."; }
+        catch (TaskCanceledException) { copyNotice = "Copy timed out. Select the update text and copy it manually."; }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module is null) return;
+        try { await module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+        catch (TaskCanceledException) { }
+    }
+}
